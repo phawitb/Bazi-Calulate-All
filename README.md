@@ -1,5 +1,12 @@
 # Bazi-Calulate-All
 
+## Run FastApi Local
+```
+uvicorn main_api:app --reload
+```
+
+## Docker
+
 Build the image:
 ```
 docker build -t fastapi-bazi-app .
