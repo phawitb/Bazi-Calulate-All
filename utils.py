@@ -225,8 +225,8 @@ def AllBaziCalulate(date_input,time_inputs,sex):
 
         if is_forward:
             # print('fw')
-            luck_pillars_heavenly_stems = [heavenly_stems[(start_index + i) % len(heavenly_stems)] for i in range(10)]
-            luck_pillars_earthly_branches = [earthly_branches[(start_branch_index + i) % len(earthly_branches)] for i in range(10)]
+            luck_pillars_heavenly_stems = [heavenly_stems[(start_index + i) % len(heavenly_stems)] for i in range(11)]
+            luck_pillars_earthly_branches = [earthly_branches[(start_branch_index + i) % len(earthly_branches)] for i in range(11)]
         
             luck_pillars_heavenly_stems.reverse()
             luck_pillars_heavenly_stems = luck_pillars_heavenly_stems[1:]
@@ -237,8 +237,8 @@ def AllBaziCalulate(date_input,time_inputs,sex):
 
         else:
             # print('bw')
-            luck_pillars_heavenly_stems = [heavenly_stems[(start_index - i) % len(heavenly_stems)] for i in range(10)]
-            luck_pillars_earthly_branches = [earthly_branches[(start_branch_index - i) % len(earthly_branches)] for i in range(10)]
+            luck_pillars_heavenly_stems = [heavenly_stems[(start_index - i) % len(heavenly_stems)] for i in range(11)]
+            luck_pillars_earthly_branches = [earthly_branches[(start_branch_index - i) % len(earthly_branches)] for i in range(11)]
 
             luck_pillars_heavenly_stems.reverse()
             luck_pillars_heavenly_stems = luck_pillars_heavenly_stems[:-1]
@@ -250,7 +250,7 @@ def AllBaziCalulate(date_input,time_inputs,sex):
         # print('is_forward',is_forward)
         # print('luck_pillars_heavenly_stems,luck_pillars_earthly_branches,start_day',luck_pillars_heavenly_stems,luck_pillars_earthly_branches,start_day)
         
-        return luck_pillars_heavenly_stems,luck_pillars_earthly_branches,start_day
+        return luck_pillars_heavenly_stems[:-1],luck_pillars_earthly_branches[:-1],start_day
 
     def get_polarity_element(stem):
         z = df_heavenly[df_heavenly['Heavenly Stem']==stem]

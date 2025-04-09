@@ -1,6 +1,10 @@
 from fastapi import FastAPI, Query
 from typing import Optional
 import utils as bazi
+from fastapi import FastAPI
+# from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
+
 
 app = FastAPI(title="Bazi Calculator API with /api prefix")
 
