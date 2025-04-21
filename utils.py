@@ -3,6 +3,7 @@ import pandas as pd
 import lunarcalendar
 from collections import Counter
 from pydantic import BaseModel
+import pytz
 
 earthly_data = {
     "Earthly Branch": ["Zi (子)", "Chou (丑)", "Yin (寅)", "Mao (卯)", "Chen (辰)", 
@@ -88,6 +89,13 @@ class BaziInput(BaseModel):
     date_input: str  # Format: YYYY-MM-DD
     time_input: str = None  # Optional, default is noon if not provided
     sex: str  # 'male' or 'female'
+
+def get_today():
+    tz = pytz.timezone('Asia/Bangkok')
+    now_thailand = datetime.now(tz)
+    today_str = now_thailand.strftime('%Y-%m-%d')
+
+    return today_str
 
 def AllBaziCalulate(date_input,time_inputs,sex):
     def get_heavenly_earthly_year(lunar_year):
@@ -496,7 +504,7 @@ def AllBaziCalulate(date_input,time_inputs,sex):
     return results
 
 # api2 -----------------------------------------------------------------------
-def Api2CurrentYearMonthEnergy(current_date=str(date.today())):
+def Api2CurrentYearMonthEnergy(current_date=get_today()):
 
     # Convert to datetime object
     current_date = datetime.strptime(current_date, "%Y-%m-%d").date()
@@ -545,7 +553,7 @@ def list_month_energy(current_enery_year):
     return months_energy
 
 # api3 -----------------------------------------------------------------------
-def Api3FiveYearEnergyForecast(current_date=str(date.today())):
+def Api3FiveYearEnergyForecast(current_date=get_today()):
 
     def find_year_energy(current_date):
         current_date = datetime.strptime(current_date, "%Y-%m-%d").date()
@@ -571,7 +579,7 @@ def Api3FiveYearEnergyForecast(current_date=str(date.today())):
     return data
 
 # api4 -----------------------------------------------------------------------
-def Api4NextWeekDailyEnergy(date_input=str(date.today())):
+def Api4NextWeekDailyEnergy(date_input=get_today()):
 
     # Get list of dates from next Monday to next Sunday
     start_date = datetime.strptime(date_input, "%Y-%m-%d")
@@ -583,6 +591,8 @@ def Api4NextWeekDailyEnergy(date_input=str(date.today())):
     week_days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
     results_nextweek = {}
+    results_nextweek['date_today'] = date_input
+    
     for i,date_input in enumerate(next_week):
         time_input = "07:09"
         sex = 'male'
