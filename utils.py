@@ -567,11 +567,13 @@ def Api3FiveYearEnergyForecast(current_date=get_today()):
 
         current_anual_energy = find_year_energy(current_date)
         current_date = datetime.strptime(current_date, "%Y-%m-%d").date()
-        data[f'{current_date.year}'] = {
-            'stem' : current_anual_energy['stem'],
-            'branch' : current_anual_energy['branch']
 
-        }
+        data[f'{current_date.year}'] = current_anual_energy
+        # data[f'{current_date.year}'] = {
+        #     'stem' : current_anual_energy['stem'],
+        #     'branch' : current_anual_energy['branch']
+
+        # }
 
         current_date = current_date + timedelta(days=365)
         current_date = current_date.strftime('%Y-%m-%d')
