@@ -44,3 +44,12 @@ def five_year_energy_forecast():
 def next_week_energy():
     result = bazi.Api4NextWeekDailyEnergy()
     return {"result": result}
+
+
+@app.get("/api/api5_star_predict")
+def star_predict(
+        birth_date: str = Query(..., description="Birth date in YYYY-MM-DD format"),
+        target_date: str = Query(..., description="Target date in YYYY-MM-DD format")
+    ):
+    result = bazi.Api5StarPredict(birth_date, target_date)
+    return {"result": result}

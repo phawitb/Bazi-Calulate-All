@@ -519,8 +519,8 @@ def Api2CurrentYearMonthEnergy(current_date=get_today()):
 
     # find year energy
     data['current_anual_energy'] = current_anual_energy
-    for kk in ['stem_element','branch_animal','branch_element','hidden_stem','polarity','stem_10g','hidden_stem_10g','hidden_stem_element']:
-        data['current_anual_energy'].pop(kk)
+    # for kk in ['stem_element','branch_animal','branch_element','hidden_stem','polarity','stem_10g','hidden_stem_10g','hidden_stem_element']:
+    #     data['current_anual_energy'].pop(kk)
 
     # find 12 months energy
     if current_date > date(current_date.year, 2, 15):
@@ -543,9 +543,9 @@ def list_month_energy(current_enery_year):
         solar_date_str = f"{current_enery_year}-{m}-15"
         results  = AllBaziCalulate(solar_date_str,"12:00",'male')
         results['four_pillars'].pop('Hour')
-        for k in ['Year','Month','Day']:
-            for kk in ['stem_element','branch_animal','branch_element','hidden_stem','polarity','stem_10g','hidden_stem_10g','hidden_stem_element']:
-                results['four_pillars'][k].pop(kk)
+        # for k in ['Year','Month','Day']:
+        #     for kk in ['stem_element','branch_animal','branch_element','hidden_stem','polarity','stem_10g','hidden_stem_10g','hidden_stem_element']:
+        #         results['four_pillars'][k].pop(kk)
 
         results['four_pillars']['Date'] = solar_date_str
         months_energy[m] = results['four_pillars']['Month']
@@ -602,16 +602,123 @@ def Api4NextWeekDailyEnergy(date_input=get_today()):
         
         if i == 0:
             data = result['four_pillars']['Month']
-            filtered_data = {k: data[k] for k in ['stem','branch'] if k in data}
-            results_nextweek['Month'] = filtered_data
+            
+            # filtered_data = {k: data[k] for k in ['stem','branch'] if k in data}
+            # results_nextweek['Month'] = filtered_data
+            results_nextweek['Month'] = data
             
             data = result['four_pillars']['Year']
-            filtered_data = {k: data[k] for k in ['stem','branch'] if k in data}
-            results_nextweek['Year'] = filtered_data
+
+            # filtered_data = {k: data[k] for k in ['stem','branch'] if k in data}
+            # results_nextweek['Year'] = filtered_data
+            results_nextweek['Year'] = data
             
         data = result['four_pillars']['Day']
-        filtered_data = {k: data[k] for k in ['stem','branch'] if k in data}
-        results_nextweek[date_input] = filtered_data
+
+        # filtered_data = {k: data[k] for k in ['stem','branch'] if k in data}
+        # results_nextweek[date_input] = filtered_data
+        results_nextweek[date_input] = data
+
         results_nextweek[date_input]['day'] = week_days[i]
         
     return results_nextweek
+
+# api5 -----------------------------------------------------------------------
+def Api5StarPredict(birth_date,target_date=get_today()):
+
+    def star_detail(star):
+        df = pd.read_csv('starDetail.csv')  
+        df = df[df['star']==star]
+
+        dict_list = df.to_dict(orient="records")
+
+        return dict_list[0]
+
+    def findisStar(star):
+        if star == 'Nobleman':
+            df_filtered = df[df['star']==star]
+            df_filtered = df_filtered[df_filtered['fourpillar_day_stem']==fourpillar_day_stem]
+            df_filtered = df_filtered[df_filtered['day_branch']==day_branch]
+            return df_filtered
+
+        elif star == 'Peach blossom':
+            df_filtered = df[df['star']==star]
+            df_filtered = df_filtered[df_filtered['fourpillar_day_branch']==fourpillar_day_branch]
+            df_filtered = df_filtered[df_filtered['day_branch']==day_branch]
+
+            if not df_filtered.shape[0]:
+                df_filtered = df[df['star']==star]
+                df_filtered = df_filtered[df_filtered['fourpillar_year_branch']==fourpillar_year_branch]
+                df_filtered = df_filtered[df_filtered['day_branch']==day_branch]
+            return df_filtered
+
+        elif star == 'Heavenly virtue':
+            df_filtered = df[df['star']==star]
+            df_filtered = df_filtered[df_filtered['fourpillar_month_branch']==fourpillar_month_branch]
+            df_filtered = df_filtered[df_filtered['day_stem']==day_stem]
+            return df_filtered
+
+        elif star == 'Fortune virtue':
+            df_filtered = df[df['star']==star]
+            df_filtered = df_filtered[df_filtered['fourpillar_year_branch']==fourpillar_year_branch]
+            df_filtered = df_filtered[df_filtered['day_branch']==day_branch]
+            return df_filtered
+
+        elif star == 'Clash':
+            df_filtered = df[df['star']==star]
+            df_filtered = df_filtered[df_filtered['fourpillar_day_branch']==fourpillar_day_branch]
+            df_filtered = df_filtered[df_filtered['day_branch']==day_branch]
+            df_filtered
+
+            if not df_filtered.shape[0]:
+                df_filtered = df[df['star']==star]
+                df_filtered = df_filtered[df_filtered['fourpillar_month_branch']==fourpillar_day_branch]
+                df_filtered = df_filtered[df_filtered['day_branch']==day_branch]
+            return df_filtered
+        
+    print('target_date',target_date)
+    target_day  = AllBaziCalulate(target_date,"12:00",'male')
+
+    df = pd.read_csv('starData.csv')
+    # Capitalize strings only
+    df = df.applymap(lambda x: x.capitalize() if isinstance(x, str) else x)
+    
+    fp  = AllBaziCalulate(str(birth_date),"12:00",'male')
+    
+    day_stem = target_day['four_pillars']['Day']['stem'].split()[0]
+    day_branch = target_day['four_pillars']['Day']['branch'].split()[0]
+    
+    fp = fp['four_pillars']
+    fourpillar_day_stem = fp['Day']['stem'].split()[0]
+    fourpillar_day_branch = fp['Day']['branch'].split()[0]
+    fourpillar_month_branch = fp['Month']['branch'].split()[0]
+    fourpillar_year_branch = fp['Year']['branch'].split()[0]
+    
+    # df_combined = pd.concat([df1, df2], ignore_index=True)
+    df_combined = []
+    for star in ['Nobleman','Peach blossom','Heavenly virtue','Fortune virtue','Clash']:
+        df_filtered = findisStar(star)
+        df_combined.append(df_filtered)
+        print(star,df_filtered.shape)
+
+    df_combined = pd.concat(df_combined, ignore_index=True)
+    print(df_combined)
+#     return list(df_combined['star'].unique())
+
+    S = {}
+    for s in list(df_combined['star'].unique()):
+        S[s] = star_detail(s)
+    return S
+    
+        
+
+    
+    
+# birth_date = '1993-04-24'
+# target_date = '2025-05-13'
+
+
+# # findStars(input_date,target_day)
+
+# Api5StarPredict(birth_date,target_date)
+
