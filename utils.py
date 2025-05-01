@@ -4,6 +4,11 @@ import lunarcalendar
 from collections import Counter
 from pydantic import BaseModel
 import pytz
+from pymongo import MongoClient
+# import datetime
+
+MONGO_URI = "mongodb://root:cvrlkiryo,%5E@34.142.199.55:27017/"
+DATABASE_NAME = "your_database"
 
 earthly_data = {
     "Earthly Branch": ["Zi (子)", "Chou (丑)", "Yin (寅)", "Mao (卯)", "Chen (辰)", 
@@ -96,6 +101,138 @@ def get_today():
     today_str = now_thailand.strftime('%Y-%m-%d')
 
     return today_str
+
+def getDatail4Pillar(fp):
+    def load_profiles(collection_name):
+        client = MongoClient(MONGO_URI)
+        db = client[DATABASE_NAME]
+        collection = db[collection_name]
+        
+        collection = db[collection_name]
+        profiles = list(collection.find({}))
+        return profiles
+
+    def find_profile(profiles, field, keyword):
+        for profile in profiles:
+            if keyword == str(profile.get(field, "")):
+                return profile
+        return None
+
+    def format_thai_date(date_obj):
+        thai_months = [
+            "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
+            "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"
+        ]
+        return f"{date_obj.year}-{date_obj.month:02d}-{date_obj.day:02d}"
+
+    def handle_daymaster(selected):
+        profiles = load_profiles("daymaster_profiles")
+        profile = find_profile(profiles, "day_master", selected)
+
+        if profile:
+            result = {
+                "status": "success",
+                "selected": selected,
+                "characteristics": profile.get("characteristics", "-"),
+                "strengths": profile.get("strengths", []),
+                "weaknesses": profile.get("weaknesses", []),
+                "advice_for_balance": profile.get("advice_for_balance", []),
+                "charm": profile.get("charm", "-")
+            }
+        else:
+            result = {
+                "status": "not_found",
+                "selected": selected,
+                "message": "❌ ไม่พบข้อมูล"
+            }
+
+        return result
+
+    def handle_zodiac(selected):
+        profiles = load_profiles("zodiac_profiles")
+        profile = find_profile(profiles, "zodiac", selected)
+
+        if profile:
+            result = {
+                "status": "success",
+                "selected": selected,
+                "characteristics": profile.get("characteristics", "-"),
+                "strengths": profile.get("strengths", []),
+                "weaknesses": profile.get("weaknesses", []),
+                "charm": profile.get("charm", "-"),
+                "advice_for_balance": profile.get("advice_for_balance", []),
+                "zodiac_relations": profile.get("zodiac_relations", [])
+            }
+        else:
+            result = {
+                "status": "not_found",
+                "selected": selected,
+                "message": "❌ ไม่พบข้อมูล"
+            }
+
+        return result
+
+    def DayMaster(fp):
+        def mapDM(element, polarity):
+            mapping = {
+                ("Earth", "Yang"): '"ดินหยาง" หรือ “ภูเขาใหญ่”',
+                ("Earth", "Yin"): '"ดินหยิน" หรือ “ผืนดิน”',
+                ("Metal", "Yang"): '"ทองหยาง" หรือ “เหล็กกล้า”',
+                ("Metal", "Yin"): '"ทองหยิน" หรือ “เครื่องประดับ”',
+                ("Water", "Yang"): '"น้ำหยาง" หรือ “แม่น้ำใหญ่”',
+                ("Water", "Yin"): '"น้ำหยิน" หรือ “หยดน้ำ”',
+                ("Fire", "Yang"): '"ไฟหยาง" หรือ “พระอาทิตย์”',
+                ("Fire", "Yin"): '"ไฟหยิน" หรือ “แสงเทียน”',
+                ("Wood", "Yang"): '"ไม้หยาง" หรือ “ต้นไม้ใหญ่”',
+                ("Wood", "Yin"): '"ไม้หยิน" หรือ “เถาวัลย์”',
+            }
+
+            return mapping.get((element, polarity), "ไม่พบข้อมูลที่ตรงกัน")
+
+
+        element, polarity = fp['four_pillars']['Day']['branch_element'], fp['four_pillars']['Day']['polarity']
+        dm = mapDM(element, polarity)
+
+        s = handle_daymaster(dm)
+#         print(s)
+        return s
+
+    def Zodiac(fp):
+        def map_zodiac_chinese_to_thai(chinese_code):
+            zodiac_list = [
+                '"กระต่าย" (Mao)', '"งู" (Si)', '"มังกร" (Chen)', '"ม้า" (Wu)',
+                '"ลิง" (Shen)', '"วัว" (Chou)', '"สุนัข" (Xu)', '"หนู" (Zi)',
+                '"หมา" (Xu)', '"หมู" (Hai)', '"เสือ" (Yin)', '"แพะ" (Wei)', '"ไก่" (You)'
+            ]
+
+            for item in zodiac_list:
+                if f"({chinese_code})" in item:
+                    return item
+
+            return None
+
+
+
+
+        chinese_code = fp['four_pillars']['Day']['branch'].split()[0]
+
+        mm = map_zodiac_chinese_to_thai(chinese_code)
+
+        return handle_zodiac(mm)
+    
+    d = {
+        'day_master' : DayMaster(fp),
+        'zodiac' : Zodiac(fp)
+    }
+    
+    return d
+
+def Api1FourPillarLuckPillar(date_input,time_inputs,sex):
+    results = AllBaziCalulate(date_input,time_inputs,sex)
+    results['detail'] = getDatail4Pillar(results)
+
+    return results
+
 
 def AllBaziCalulate(date_input,time_inputs,sex):
     def get_heavenly_earthly_year(lunar_year):
@@ -710,7 +847,48 @@ def Api5StarPredict(birth_date,target_date=get_today()):
         S[s] = star_detail(s)
     return S
     
-        
+# api6 -----------------------------------------------------------------------
+def Api6GetDetailDate(formatted):
+        def load_profiles(collection_name):
+            client = MongoClient(MONGO_URI)
+
+            db = client[DATABASE_NAME]
+            collection = db[collection_name]
+            
+            profiles = list(collection.find({}))
+            return profiles
+
+        def find_profile(profiles, field, keyword):
+            for profile in profiles:
+                if keyword == str(profile.get(field, "")):
+                    return profile
+            return None
+
+        profiles = load_profiles("calendar_profiles_2568")
+        profile = find_profile(profiles, "date", formatted)
+
+        if profile:
+            result = {
+                "status": "success",
+                "date": formatted,
+                "theme": profile.get("theme", "-"),
+                "day_quote": profile.get("day_quote", "-"),
+                "highlight_of_day": profile.get("highlight_of_day", "-"),
+                "power_of_day": profile.get("power_of_day", "-"),
+                "seasonal_effect": profile.get("seasonal_effect", "-"),
+                "lucky_colors": profile.get("lucky_colors", []),
+                "things_to_do": profile.get("things_to_do", []),
+                "things_to_avoid": profile.get("things_to_avoid", []),
+                "zodiac_relations": profile.get("zodiac_relations", [])
+            }
+        else:
+            result = {
+                "status": "not_found",
+                "date": formatted,
+                "message": "❌ ไม่พบข้อมูลในวันนั้น"
+            }
+
+        return result
 
     
     

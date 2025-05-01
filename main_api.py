@@ -24,7 +24,7 @@ def calculate_bazi(
     time_input: Optional[str] = Query(None, description="Birth time in HH:MM format (optional)"),
     sex: str = Query(..., description="Sex (male or female)")
 ):
-    result = bazi.AllBaziCalulate(date_input, time_input, sex)
+    result = bazi.Api1FourPillarLuckPillar(date_input, time_input, sex)
     return {"result": result}
 
 
@@ -53,3 +53,13 @@ def star_predict(
     ):
     result = bazi.Api5StarPredict(birth_date, target_date)
     return {"result": result}
+
+
+@app.get("/api/api6_get_detail_date")
+def get_detail_date(
+        input_date: str = Query(..., description="Birth date in YYYY-MM-DD format")
+    ):
+    result = bazi.Api6GetDetailDate(input_date)
+    return {"result": result}
+
+
